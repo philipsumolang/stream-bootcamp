@@ -3,6 +3,10 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\MovieController;
+use App\Http\Controllers\Admin\LoginController;
+use App\Http\Controllers\Admin\TransactionController;
+
+use App\Http\Controllers\Member\RegisterController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -13,15 +17,17 @@ use App\Http\Controllers\Admin\MovieController;
 | contains the "web" middleware group. Now create something great!
 |
 */
+Route::view('/', 'index');
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/register', [RegisterController::class, 'index'])->name('member.register');
 
-// Route::get('/admin/dashboard', [DashboardController::class, 'index']);
+Route::get('/admin/login', [LoginController::class, 'index'])->name('admin.login');
+Route::post('/admin/login', [LoginController::class, 'authenticate'])->name('admin.login.auth');
 
-Route::group(['prefix' => 'admin'], function (){
-    Route::get('/', [DashboardController::class, 'index']);
+Route::group(['prefix' => 'admin', 'middleware' => ['admin.auth']], function (){
+    Route::get('/', [DashboardController::class, 'index'])->name('admin.dashboard');
+
+    Route::get('/logout', [LoginController::class, 'logout'])->name('admin.login.logout');
 
     Route::group(['prefix' => 'movie'], function () {
         Route::get('/', [MovieController::class, 'index'])->name('admin.movie');
@@ -31,6 +37,11 @@ Route::group(['prefix' => 'admin'], function (){
 
         Route::get('/edit/{id}', [MovieController::class, 'edit'])->name('admin.movie.edit');
         Route::put('/update/{id}', [MovieController::class, 'update'])->name('admin.movie.update');
-    });
+
+        Route::delete('destroy/{id}', [MovieController::class, 'destroy'])->name('admin.movie.destroy');
+
+    }); 
+
+    Route::get('/transaction', [TransactionController::class, 'index'])->name('admin.transaction');
 
 });
